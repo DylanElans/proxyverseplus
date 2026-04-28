@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Proxyverse",
+  "version": "0.0.0",
+  "version_name": "1.0.0",
+  "description": "__MSG_app_desc__",
+  "default_locale": "en",
+  "icons": {
+    "128": "mini-logo.png"
+  },
+  "action": {
+    "default_popup": "index.html#/popup"
+  },
+  "background": {
+    "service_worker": "assets/background-C6oI5JFL.js",
+    "type": "module"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "permissions": [
+    "storage",
+    "proxy",
+    "webRequest",
+    "webRequestAuthProvider"
+  ]
+}

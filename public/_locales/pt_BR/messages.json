@@ -1,0 +1,228 @@
+{
+  "app_desc": {
+    "message": "Uma ferramenta para ajudá-lo a gerenciar e alternar seus perfis de proxy"
+  },
+
+  "nav_preference": {
+    "message": "Preferência"
+  },
+  "nav_config": {
+    "message": "Configuração"
+  },
+  "nav_custom_profiles": {
+    "message": "Perfis personalizados"
+  },
+  "nav_system_profiles": {
+    "message": "Predefinições"
+  },
+
+  "theme_light_mode": {
+    "message": "Modo de luz"
+  },
+  "theme_dark_mode": {
+    "message": "Modo escuro"
+  },
+  "theme_auto_mode": {
+    "message": "Seguir o sistema"
+  },
+
+  "mode_auto_switch": {
+    "message": "Comutação automática"
+  },
+  "mode_direct": {
+    "message": "Direto"
+  },
+  "mode_system": {
+    "message": "Usar proxy do sistema"
+  },
+  "mode_profile_create": {
+    "message": "Criar novo perfil"
+  },
+
+  "config_proxy_type": {
+    "message": "Tipo de proxy"
+  },
+  "config_proxy_type_proxy": {
+    "message": "Proxy"
+  },
+  "config_proxy_type_pac": {
+    "message": "Script PAC"
+  },
+  "config_proxy_type_auto": {
+    "message": "Comutação automática"
+  },
+  "config_proxy_type_default": {
+    "message": "Igual ao padrão"
+  },
+  "config_section_proxy_server": {
+    "message": "Servidor proxy"
+  },
+  "config_section_proxy_server_default": {
+    "message": "Servidor padrão"
+  },
+  "config_section_proxy_server_http": {
+    "message": "HTTP"
+  },
+  "config_section_proxy_server_https": {
+    "message": "HTTPS"
+  },
+  "config_section_proxy_server_ftp": {
+    "message": "FTP"
+  },
+  "config_section_proxy_auth_tips": {
+    "message": "Defina o nome de usuário e a senha se o proxy exigir autenticação"
+  },
+  "config_section_proxy_auth_unsupported": {
+    "message": "O tipo de proxy atual não é compatível com a autenticação"
+  },
+  "config_section_proxy_auth_title": {
+    "message": "Autenticação de proxy"
+  },
+  "config_section_proxy_auth_username": {
+    "message": "Nome de usuário"
+  },
+  "config_section_proxy_auth_password": {
+    "message": "Senha"
+  },
+
+  "config_section_bypass_list": {
+    "message": "Lista de desvios"
+  },
+  "config_section_advance": {
+    "message": "Configuração avançada"
+  },
+  "config_reference_bypass_list": {
+    "message": "Saiba mais sobre a lista de bypass"
+  },
+
+  "config_section_auto_switch_rules": {
+    "message": "Regras de comutação automática"
+  },
+  "config_section_auto_switch_type": {
+    "message": "Tipo de condição"
+  },
+  "config_section_auto_switch_type_domain": {
+    "message": "Domínio"
+  },
+  "config_section_auto_switch_type_url": {
+    "message": "URL"
+  },
+  "config_section_auto_switch_type_url_malformed": {
+    "message": "URL inválido"
+  },
+  "config_section_auto_switch_type_url_malformed_chrome": {
+    "message": "Por motivos de segurança, o Chrome não suporta a correspondência de caminhos em URLs HTTPS. Saiba mais em https://issues.chromium.org/40083832"
+  },
+  "config_section_auto_switch_type_cidr": {
+    "message": "CIDR"
+  },
+  "config_section_auto_switch_type_cidr_malformed": {
+    "message": "CIDR inválido. Use o formato `192.168.1.1/24` ou `2001:db8::/32`"
+  },
+  "config_section_auto_switch_type_disabled": {
+    "message": "Ignorar temporariamente"
+  },
+  "config_section_auto_switch_condition": {
+    "message": "Condição"
+  },
+  "config_section_auto_switch_profile": {
+    "message": "Rota para"
+  },
+  "config_section_auto_switch_actions": {
+    "message": "Ações"
+  },
+  "config_section_auto_switch_add_rule": {
+    "message": "Adicionar regra"
+  },
+  "config_section_auto_switch_delete_rule": {
+    "message": "Excluir regra atual"
+  },
+  "config_section_auto_switch_duplicate_rule": {
+    "message": "Duplicar regra atual"
+  },
+  "config_section_auto_switch_default_profile": {
+    "message": "Perfil padrão"
+  },
+  "config_section_auto_switch_pac_preview": {
+    "message": "Visualizar o PAC Script"
+  },
+
+  "config_action_edit": {
+    "message": "Editar"
+  },
+  "config_action_delete": {
+    "message": "Excluir perfil"
+  },
+  "config_action_delete_double_confirm": {
+    "message": "Tem certeza de que deseja excluir o perfil atual?"
+  },
+  "config_action_save": {
+    "message": "Salvar"
+  },
+  "config_action_cancel": {
+    "message": "Mudança de descarte"
+  },
+  "config_action_clear": {
+    "message": "Limpo"
+  },
+
+  "config_feedback_saved": {
+    "message": "O perfil foi salvo"
+  },
+  "config_feedback_copied": {
+    "message": "Copiado"
+  },
+  "config_feedback_deleted": {
+    "message": "O perfil foi excluído"
+  },
+  "config_feedback_unknown_profile": {
+    "message": "Perfil desconhecido"
+  },
+  "config_feedback_error_occurred": {
+    "message": "Ocorreu um erro: $1"
+  },
+
+  "preferences_section_import_export": {
+    "message": "Importação e exportação"
+  },
+
+  "preferences_section_import_export_desc": {
+    "message": "Exporte seus perfis de proxy para um arquivo para backup ou compartilhamento, ou importe-os para restaurar perfis quando necessário."
+  },
+
+  "preferences_action_profile_export": {
+    "message": "Perfis de exportação"
+  },
+
+  "preferences_action_profile_import": {
+    "message": "Perfis de importação"
+  },
+
+  "preferences_feedback_no_profile_to_be_exported": {
+    "message": "Nenhum perfil válido a ser exportado"
+  },
+
+  "preferences_tips_profile_overwrite": {
+    "message": "Alguns perfis podem ser sobrescritos após a importação. Tem certeza de que deseja continuar?"
+  },
+
+  "preferences_feedback_n_profiles_being_imported": {
+    "message": "$1 perfis foram importados"
+  },
+
+  "form_is_required": {
+    "message": "$1 é necessário"
+  },
+
+  "feedback_error": {
+    "message": "Algo errado"
+  },
+
+  "firefox_incognito_access_error_html": {
+    "message": "<div class=\"arco-typography\"> Devido às limitações do Firefox, o Proxyverse não funciona corretamente, pois não está ativado nas janelas de navegação privada. </div>\n<div class=\"arco-typography\"> Ative a extensão em janelas privadas. </div>\n<div class=\"arco-typography\"><a class=\"arco-link arco-link-status-normal\" href=\"https://mzl.la/3pbGH96\">Saiba mais</a></div>"
+  },
+
+  "_": {
+    "message": "<DUMMY>"
+  }
+}

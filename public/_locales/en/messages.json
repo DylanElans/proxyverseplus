@@ -1,0 +1,228 @@
+{
+  "app_desc": {
+    "message": "A tool to help you manage and switch your proxy profiles"
+  },
+
+  "nav_preference": {
+    "message": "Preference"
+  },
+  "nav_config": {
+    "message": "Config"
+  },
+  "nav_custom_profiles": {
+    "message": "Custom Profiles"
+  },
+  "nav_system_profiles": {
+    "message": "Presets"
+  },
+
+  "theme_light_mode": {
+    "message": "Light mode"
+  },
+  "theme_dark_mode": {
+    "message": "Dark mode"
+  },
+  "theme_auto_mode": {
+    "message": "Follow system"
+  },
+
+  "mode_auto_switch": {
+    "message": "Auto Switch"
+  },
+  "mode_direct": {
+    "message": "Direct"
+  },
+  "mode_system": {
+    "message": "Use System Proxy"
+  },
+  "mode_profile_create": {
+    "message": "Create New Profile"
+  },
+
+  "config_proxy_type": {
+    "message": "Proxy Type"
+  },
+  "config_proxy_type_proxy": {
+    "message": "Proxy"
+  },
+  "config_proxy_type_pac": {
+    "message": "PAC Script"
+  },
+  "config_proxy_type_auto": {
+    "message": "Auto Switch"
+  },
+  "config_proxy_type_default": {
+    "message": "Same as Default"
+  },
+  "config_section_proxy_server": {
+    "message": "Proxy Server"
+  },
+  "config_section_proxy_server_default": {
+    "message": "Default Server"
+  },
+  "config_section_proxy_server_http": {
+    "message": "HTTP"
+  },
+  "config_section_proxy_server_https": {
+    "message": "HTTPS"
+  },
+  "config_section_proxy_server_ftp": {
+    "message": "FTP"
+  },
+  "config_section_proxy_auth_tips": {
+    "message": "Set username and password if your proxy requires authentication"
+  },
+  "config_section_proxy_auth_unsupported": {
+    "message": "The current proxy type does not support authentication"
+  },
+  "config_section_proxy_auth_title": {
+    "message": "Proxy Authentication"
+  },
+  "config_section_proxy_auth_username": {
+    "message": "Username"
+  },
+  "config_section_proxy_auth_password": {
+    "message": "Password"
+  },
+
+  "config_section_bypass_list": {
+    "message": "Bypass List"
+  },
+  "config_section_advance": {
+    "message": "Advance Config"
+  },
+  "config_reference_bypass_list": {
+    "message": "Learn more about bypass list"
+  },
+
+  "config_section_auto_switch_rules": {
+    "message": "Auto Switch Rules"
+  },
+  "config_section_auto_switch_type": {
+    "message": "Condition Type"
+  },
+  "config_section_auto_switch_type_domain": {
+    "message": "Domain"
+  },
+  "config_section_auto_switch_type_url": {
+    "message": "URL"
+  },
+  "config_section_auto_switch_type_url_malformed": {
+    "message": "Invalid URL"
+  },
+  "config_section_auto_switch_type_url_malformed_chrome": {
+    "message": "For security reasons, Chrome does not support path matching in HTTPS URLs. Learn more at https://issues.chromium.org/40083832"
+  },
+  "config_section_auto_switch_type_cidr": {
+    "message": "CIDR"
+  },
+  "config_section_auto_switch_type_cidr_malformed": {
+    "message": "Invalid CIDR. Please use the format like `192.168.1.1/24` or `2001:db8::/32`"
+  },
+  "config_section_auto_switch_type_disabled": {
+    "message": "Temporarily Skip"
+  },
+  "config_section_auto_switch_condition": {
+    "message": "Condition"
+  },
+  "config_section_auto_switch_profile": {
+    "message": "Route to"
+  },
+  "config_section_auto_switch_actions": {
+    "message": "Actions"
+  },
+  "config_section_auto_switch_add_rule": {
+    "message": "Add Rule"
+  },
+  "config_section_auto_switch_delete_rule": {
+    "message": "Delete Current Rule"
+  },
+  "config_section_auto_switch_duplicate_rule": {
+    "message": "Duplicate Current Rule"
+  },
+  "config_section_auto_switch_default_profile": {
+    "message": "Default Profile"
+  },
+  "config_section_auto_switch_pac_preview": {
+    "message": "Preview PAC Script"
+  },
+
+  "config_action_edit": {
+    "message": "Edit"
+  },
+  "config_action_delete": {
+    "message": "Delete Profile"
+  },
+  "config_action_delete_double_confirm": {
+    "message": "Are you sure to delete the current profile"
+  },
+  "config_action_save": {
+    "message": "Save"
+  },
+  "config_action_cancel": {
+    "message": "Discard Change"
+  },
+  "config_action_clear": {
+    "message": "Clear"
+  },
+
+  "config_feedback_saved": {
+    "message": "The profile had been saved"
+  },
+  "config_feedback_copied": {
+    "message": "Copied"
+  },
+  "config_feedback_deleted": {
+    "message": "The profile had been deleted"
+  },
+  "config_feedback_unknown_profile": {
+    "message": "Unknown profile"
+  },
+  "config_feedback_error_occurred": {
+    "message": "Error occurred: $1"
+  },
+
+  "preferences_section_import_export": {
+    "message": "Import & Export"
+  },
+
+  "preferences_section_import_export_desc": {
+    "message": "Export your proxy profiles to a file for backup or sharing, or import them to restore profiles when needed."
+  },
+
+  "preferences_action_profile_export": {
+    "message": "Export Profiles"
+  },
+
+  "preferences_action_profile_import": {
+    "message": "Import Profiles"
+  },
+
+  "preferences_feedback_no_profile_to_be_exported": {
+    "message": "No valid profile to be exported"
+  },
+
+  "preferences_tips_profile_overwrite": {
+    "message": "Some profile(s) might be overwritten after the import. Are you sure you want to continue?"
+  },
+
+  "preferences_feedback_n_profiles_being_imported": {
+    "message": "$1 profiles have been imported"
+  },
+
+  "form_is_required": {
+    "message": "$1 is required"
+  },
+
+  "feedback_error": {
+    "message": "Something wrong"
+  },
+
+  "firefox_incognito_access_error_html": {
+    "message": "<div class=\"arco-typography\"> Due to Firefox's restrictions, Proxyverse does not work properly as it's not enabled in private browsing windows. </div>\n<div class=\"arco-typography\"> Please enable the extension in private windows. </div>\n<div class=\"arco-typography\"><a class=\"arco-link arco-link-status-normal\" href=\"https://mzl.la/3pbGH96\">Learn more</a></div>"
+  },
+
+  "_": {
+    "message": "<DUMMY>"
+  }
+}

@@ -1,0 +1,7 @@
+cd /d D:\apps\proxyverse-main
+npm install
+npm run build
+
+
+打包发布文件目录:
+ D:\apps\proxyverse-main\dist 

@@ -1,0 +1,21 @@
+Proxyverse Chrome-only patch
+
+Changed files:
+- src/adapters/index.ts
+- src/adapters/chrome.ts
+- src/background.ts
+- package.json
+
+What changed:
+1. Adapter selection is now Chrome-only. The project no longer prefers Firefox/browser.* at runtime.
+2. Chrome event registration now uses guards + try/catch, so missing MV3 APIs won't crash the service worker.
+3. Background listener registration is wrapped in try/catch to avoid startup failure.
+4. Firefox build script was removed from package.json.
+
+Build:
+- npm install
+- npm run build
+
+Important:
+- In Chrome MV3, authenticated proxy handling via webRequest.onAuthRequired may still be unavailable in some environments.
+- This patch keeps the extension stable in Chrome and removes the Firefox-specific runtime path.
