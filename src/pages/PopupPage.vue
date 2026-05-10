@@ -18,6 +18,8 @@ import {
 import { setProxy, getCurrentProxySetting } from "../services/proxy";
 import { Host } from "@/adapters";
 
+// 测速用
+import IconScan from '@arco-design/web-vue/es/icon/icon-scan';
 
 const activeSetting = ref<"" | "config" | "ip">("");
 
@@ -136,8 +138,13 @@ const openIPCheck = () => chrome.tabs.create({ url: "https://ip.sb" });
 // 切换代理
 const setProxyByProfile = async (val: ProxyProfile) => {
   try {
+    speedResult.value = null;   // 切换代理时清空测速结果
+    loading.value = false;      // 可选：顺手把测速按钮 loading 关掉
+    
     const raw = toRaw(val);
+
     await setProxy(raw);
+
     selectedKeys.value = [raw.profileID];
     detectExitCountry(raw.profileID);
     refreshSystemProxyMode();
@@ -147,6 +154,114 @@ const setProxyByProfile = async (val: ProxyProfile) => {
     });
   }
 };
+
+
+//测速相关开始
+const speedResult = ref<{ download: number; upload: number; ping: number } | null>(null);
+const loading = ref(false);
+const PING_TEST_URL = "https://speed.hetzner.de/100KB.bin";
+const DOWNLOAD_TEST_URL = "https://speed.hetzner.de/1MB.bin";
+// 这个接口要支持 POST，并且允许跨域
+const UPLOAD_TEST_URL = "https://your-server.com/speed/upload";
+
+const fetchWithTimeout = async (
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  timeoutMs = 10000
+) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+const testPing = async (): Promise<number> => {
+  const times: number[] = [];
+
+  for (let i = 0; i < 3; i++) {
+    const url = `${PING_TEST_URL}?ping=${Date.now()}_${i}`;
+    const start = performance.now();
+
+    const res = await fetchWithTimeout(
+      url,
+      {
+        method: "GET",
+        cache: "no-store",
+      },
+      8000
+    );
+
+    // 读完响应，确保请求真正完成
+    await res.arrayBuffer();
+
+    const end = performance.now();
+    times.push(end - start);
+  }
+
+  const avg = times.reduce((a, b) => a + b, 0) / times.length;
+  return Math.round(avg);
+};
+
+
+// 测速函数（SpeedOf.Me 并行下载）
+const testProxySpeed = async () => {
+  try {
+    const testFiles = [250000, 500000, 1000000];
+    const results = [];
+
+    for (const size of testFiles) {      
+      const url = `${DOWNLOAD_TEST_URL}?cache=${Date.now()}`;
+      const start = performance.now();
+      const res = await fetch(url, { cache: "no-store" });
+      await res.arrayBuffer();
+      const end = performance.now();
+
+      const seconds = (end - start) / 1000;
+      const speedMbps = (size * 8) / (seconds * 1_000_000);
+      results.push(speedMbps);
+    }
+
+    const download = results.reduce((a, b) => a + b, 0) / results.length;
+
+    const pingavg = await testPing();
+
+    return { download: Math.round(download), upload: 0, ping: pingavg };
+  } catch (e) {
+    console.error('测速失败', e);
+    return { download: 0, upload: 0, ping: 0 };
+  }
+};
+
+// 点击按钮执行测速
+const runSpeedTest = async () => {
+  loading.value = true;
+  speedResult.value = null;
+
+  try {
+    const result = await testProxySpeed();
+    speedResult.value = result;
+
+    if (result.download > 0) {
+     // Message.success(`测速完成：下载 ${result.download} Mbps`);
+    } else {
+      Message.error("测速失败");
+    }
+  } catch (e) {
+    console.error("runSpeedTest error:", e);
+    Message.error("测速失败");
+  } finally {
+    loading.value = false;
+  }
+};
+
 </script>
 
 <template>
@@ -157,12 +272,43 @@ const setProxyByProfile = async (val: ProxyProfile) => {
       </section>
     </a-layout-header>
 
+  <!-- Mac 风格极细分割线 -->
+  <a-divider style="margin: 2px 0;" />
+
+	<section class="settings">
+	  <a-button-group type="text" size="large">
+	    <a-button
+	      :class="{ active: activeSetting === 'config' }"
+	      @click="activeSetting = 'config'; jumpTo({ name: 'profile.home' })"
+	    >
+	      <template #icon><icon-tool /></template>
+	      配  置
+	    </a-button>
+	    <a-button
+	      :class="{ active: activeSetting === 'ip' }"
+	      @click="activeSetting = 'ip'; openIPCheck()"
+	    >
+	      <template #icon><icon-desktop /></template>
+	      IP检测
+	    </a-button>        
+      <a-button @click="runSpeedTest" :loading="loading">
+      <template #icon><IconScan /></template>
+      测速
+      </a-button>
+
+	  </a-button-group>
+
+	</section>
+
+  <!-- Mac 风格极细分割线 -->
+  <a-divider style="margin: 4px 0;" />
+
     <a-layout-content class="profiles">
       <a-menu class="top-actions-menu" :selected-keys="selectedKeys">
         <!-- 直连（绕过系统） -->
         <a-menu-item
           :key="SystemProfile.DIRECT.profileID"
-          @click.prevent="() => { activeSetting = ''; setProxyByProfile(SystemProfile.DIRECT) }"
+          @click.prevent="() => { activeSetting = ''; setProxyByProfile(SystemProfile.DIRECT) }"          
         >
           <template #icon>
             <span class="menu-icon-holder"><icon-swap /></span>
@@ -173,7 +319,7 @@ const setProxyByProfile = async (val: ProxyProfile) => {
         <!-- 系统代理（继承 OS） -->
         <a-menu-item
           :key="SystemProfile.SYSTEM.profileID"
-          @click.prevent="() => { activeSetting = ''; setProxyByProfile(SystemProfile.SYSTEM) }"
+          @click.prevent="() => { activeSetting = ''; setProxyByProfile(SystemProfile.SYSTEM) }"          
         >
           <template #icon>
             <span class="menu-icon-holder">
@@ -194,43 +340,30 @@ const setProxyByProfile = async (val: ProxyProfile) => {
            系统代理
         </a-menu-item>
 
-	</a-menu>
 
-	<section class="settings">
-	  <a-button-group type="text" size="large">
-	    <a-button
-	      :class="{ active: activeSetting === 'config' }"
-	      @click="activeSetting = 'config'; jumpTo({ name: 'profile.home' })"
-	    >
-	      <template #icon><icon-tool /></template>
-	      配  置
-	    </a-button>
-
-	    <a-button
-	      :class="{ active: activeSetting === 'ip' }"
-	      @click="activeSetting = 'ip'; openIPCheck()"
-	    >
-	      <template #icon><icon-desktop /></template>
-	      IP检测
-	    </a-button>
-
-	    <a-divider direction="vertical" />
 	    <ThemeSwitcher size="large" />
-	  </a-button-group>
+	     </a-menu>
 
-	  <div v-if="currentExitInfo" class="exit-info">
-	    当前出口 IP：
-	    <span class="exit-ip">{{ currentExitInfo.ip }}</span>
-	    <span class="exit-flag">{{ currentExitInfo.flag }}</span>
-	    <span class="exit-city">
-	      {{ currentExitInfo.city || currentExitInfo.country }}
-	    </span>
-	  </div>
-	</section>
+        <!-- 当前出口信息：放到“直连上网 / 系统代理”下面 -->
+        <div v-if="currentExitInfo" class="exit-info top-exit-info">
+          当前出口：
+          <span class="exit-ip">{{ currentExitInfo.ip }}</span>          
+          <span class="exit-city">
+            {{ currentExitInfo.city || currentExitInfo.country }}
+          </span>
+         <span class="exit-flag">{{ currentExitInfo.flag }}</span>    
+        </div>
+        <!-- 测速结果 -->
+        <div v-if="speedResult" class="exit-info top-exit-info">        
+          测速结果：
+          <span>download: {{ speedResult.download }} Mbs  ping: {{ speedResult.ping }} ms</span>
+          <!-- 上传: {{ speedResult.upload }} Mbs -->
+        </div>
+
 
 
         <!-- Mac 风格极细分割线 -->
-        <a-divider />
+        <a-divider style="margin: 4px 0;" />
         <a-menu class="profile-list-menu" :selected-keys="selectedKeys">
 
         <!-- 用户 profile 列表 -->
@@ -239,7 +372,7 @@ const setProxyByProfile = async (val: ProxyProfile) => {
           :key="item.profileID"
           @click.prevent="() => { activeSetting = ''; setProxyByProfile(item) }"
           class="custom-profiles"
-          :style="{ '--indicator-color': item.color || '#999' }"
+          :style="{ '--indicator-color': item.color || '#999' }"          
         >
           <template #icon>
             <span
@@ -345,6 +478,12 @@ const setProxyByProfile = async (val: ProxyProfile) => {
     .arco-menu-item.arco-menu-item-active {
       background-color: rgba(var(--primary-6), 0.25) !important;
       font-weight: 600;
+      color: var(--color-text-1) !important;
+      .profile-text,
+      .profile-city {
+        color: var(--color-text-1) !important;
+        opacity: 1;
+    }
 
       &.custom-profiles::before {
         background-color: rgb(var(--primary-6)) !important;
@@ -391,6 +530,10 @@ const setProxyByProfile = async (val: ProxyProfile) => {
 /* 顶部 2 个动作横向排列：直连 / 系统代理  */
 .top-actions-menu {
   background: transparent;
+  .arco-menu-item.arco-menu-item-active {
+    color: var(--color-text-1) !important;
+    font-weight: 600;
+  }
 
   .arco-menu-inner {
     display: flex;
@@ -422,33 +565,37 @@ const setProxyByProfile = async (val: ProxyProfile) => {
   padding-bottom: 4px;
 }
 
+/* 当前出口信息：显示在“直连上网 / 系统代理”下面 */
+.top-exit-info {
+  padding: 0 12px 4px;
+  margin-top: -2px;
+  font-size: 11px;
+  color: var(--color-text-3);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+
+  .exit-ip {
+    font-family: monospace;
+    color: #006400; /* 深绿色 */
+  }
+
+  .exit-flag {
+    font-size: 13px;
+    color: #006400; /* 深绿色 */
+  }
+
+  .exit-city {
+    opacity: 0.9;
+    color: #006400; /* 深绿色 */
+  }
+}
+
 .settings {
   padding: 0.2em 0.6em 0.4em;
   text-align: center;
   border-top: 0.5px solid rgba(255, 255, 255, 0.08);
   background-color: var(--color-bg-5);
-
-  .exit-info {
-    margin-top: 4px;
-    font-size: 11px;
-    color: var(--color-text-3);
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 4px;
-
-    .exit-ip {
-      font-family: monospace;
-      font-size: 11px;
-    }
-
-    .exit-flag {
-      font-size: 13px;
-    }
-
-    .exit-city {
-      opacity: 0.9;
-    }
-  }
 }
 </style>
