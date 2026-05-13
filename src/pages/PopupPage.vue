@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { type RouteLocationRaw, useRouter } from "vue-router";
 import { Message } from "@arco-design/web-vue";
 import { onMounted, ref, toRaw } from "vue";
@@ -18,8 +19,15 @@ import {
 import { setProxy, getCurrentProxySetting } from "../services/proxy";
 import { Host } from "@/adapters";
 
+//排序用
+const sortedProfiles = computed(() => {
+  return Object.values(profiles.value || {}).sort((a: any, b: any) => {
+    return (a.order ?? 9999) - (b.order ?? 9999);
+  });
+});
+
 // 测速用
-import IconScan from '@arco-design/web-vue/es/icon/icon-scan';
+import IconScan from "@arco-design/web-vue/es/icon/icon-scan";
 
 const activeSetting = ref<"" | "config" | "ip">("");
 
@@ -56,7 +64,7 @@ const countryCodeToFlag = (code: string): string => {
     ...code
       .toUpperCase()
       .split("")
-      .map((c) => base + (c.charCodeAt(0) - 65))
+      .map((c) => base + (c.charCodeAt(0) - 65)),
   );
 };
 
@@ -95,7 +103,7 @@ const refreshSystemProxyMode = () => {
       { incognito: false },
       (details: any) => {
         systemProxyMode.value = details?.value?.mode ?? null;
-      }
+      },
     );
   } catch {
     systemProxyMode.value = null;
@@ -138,9 +146,9 @@ const openIPCheck = () => chrome.tabs.create({ url: "https://ip.sb" });
 // 切换代理
 const setProxyByProfile = async (val: ProxyProfile) => {
   try {
-    speedResult.value = null;   // 切换代理时清空测速结果
-    loading.value = false;      // 可选：顺手把测速按钮 loading 关掉
-    
+    speedResult.value = null; // 切换代理时清空测速结果
+    loading.value = false; // 可选：顺手把测速按钮 loading 关掉
+
     const raw = toRaw(val);
 
     await setProxy(raw);
@@ -155,9 +163,12 @@ const setProxyByProfile = async (val: ProxyProfile) => {
   }
 };
 
-
 //测速相关开始
-const speedResult = ref<{ download: number; upload: number; ping: number } | null>(null);
+const speedResult = ref<{
+  download: number;
+  upload: number;
+  ping: number;
+} | null>(null);
 const loading = ref(false);
 const PING_TEST_URL = "https://speed.hetzner.de/100KB.bin";
 const DOWNLOAD_TEST_URL = "https://speed.hetzner.de/1MB.bin";
@@ -167,7 +178,7 @@ const UPLOAD_TEST_URL = "https://your-server.com/speed/upload";
 const fetchWithTimeout = async (
   input: RequestInfo | URL,
   init: RequestInit = {},
-  timeoutMs = 10000
+  timeoutMs = 10000,
 ) => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -196,7 +207,7 @@ const testPing = async (): Promise<number> => {
         method: "GET",
         cache: "no-store",
       },
-      8000
+      8000,
     );
 
     // 读完响应，确保请求真正完成
@@ -210,14 +221,13 @@ const testPing = async (): Promise<number> => {
   return Math.round(avg);
 };
 
-
 // 测速函数（SpeedOf.Me 并行下载）
 const testProxySpeed = async () => {
   try {
     const testFiles = [250000, 500000, 1000000];
     const results = [];
 
-    for (const size of testFiles) {      
+    for (const size of testFiles) {
       const url = `${DOWNLOAD_TEST_URL}?cache=${Date.now()}`;
       const start = performance.now();
       const res = await fetch(url, { cache: "no-store" });
@@ -235,7 +245,7 @@ const testProxySpeed = async () => {
 
     return { download: Math.round(download), upload: 0, ping: pingavg };
   } catch (e) {
-    console.error('测速失败', e);
+    console.error("测速失败", e);
     return { download: 0, upload: 0, ping: 0 };
   }
 };
@@ -250,7 +260,7 @@ const runSpeedTest = async () => {
     speedResult.value = result;
 
     if (result.download > 0) {
-     // Message.success(`测速完成：下载 ${result.download} Mbps`);
+      // Message.success(`测速完成：下载 ${result.download} Mbps`);
     } else {
       Message.error("测速失败");
     }
@@ -261,7 +271,6 @@ const runSpeedTest = async () => {
     loading.value = false;
   }
 };
-
 </script>
 
 <template>
@@ -272,43 +281,52 @@ const runSpeedTest = async () => {
       </section>
     </a-layout-header>
 
-  <!-- Mac 风格极细分割线 -->
-  <a-divider style="margin: 2px 0;" />
+    <!-- Mac 风格极细分割线 -->
+    <a-divider style="margin: 2px 0" />
 
-	<section class="settings">
-	  <a-button-group type="text" size="large">
-	    <a-button
-	      :class="{ active: activeSetting === 'config' }"
-	      @click="activeSetting = 'config'; jumpTo({ name: 'profile.home' })"
-	    >
-	      <template #icon><icon-tool /></template>
-	      配  置
-	    </a-button>
-	    <a-button
-	      :class="{ active: activeSetting === 'ip' }"
-	      @click="activeSetting = 'ip'; openIPCheck()"
-	    >
-	      <template #icon><icon-desktop /></template>
-	      IP检测
-	    </a-button>        
-      <a-button @click="runSpeedTest" :loading="loading">
-      <template #icon><IconScan /></template>
-      测速
-      </a-button>
+    <section class="settings">
+      <a-button-group type="text" size="large">
+        <a-button
+          :class="{ active: activeSetting === 'config' }"
+          @click="
+            activeSetting = 'config';
+            jumpTo({ name: 'profile.home' });
+          "
+        >
+          <template #icon><icon-tool /></template>
+          配 置
+        </a-button>
+        <a-button
+          :class="{ active: activeSetting === 'ip' }"
+          @click="
+            activeSetting = 'ip';
+            openIPCheck();
+          "
+        >
+          <template #icon><icon-desktop /></template>
+          IP检测
+        </a-button>
+        <a-button @click="runSpeedTest" :loading="loading">
+          <template #icon><IconScan /></template>
+          测速
+        </a-button>
+      </a-button-group>
+    </section>
 
-	  </a-button-group>
-
-	</section>
-
-  <!-- Mac 风格极细分割线 -->
-  <a-divider style="margin: 4px 0;" />
+    <!-- Mac 风格极细分割线 -->
+    <a-divider style="margin: 4px 0" />
 
     <a-layout-content class="profiles">
       <a-menu class="top-actions-menu" :selected-keys="selectedKeys">
         <!-- 直连（绕过系统） -->
         <a-menu-item
           :key="SystemProfile.DIRECT.profileID"
-          @click.prevent="() => { activeSetting = ''; setProxyByProfile(SystemProfile.DIRECT) }"          
+          @click.prevent="
+            () => {
+              activeSetting = '';
+              setProxyByProfile(SystemProfile.DIRECT);
+            }
+          "
         >
           <template #icon>
             <span class="menu-icon-holder"><icon-swap /></span>
@@ -319,7 +337,12 @@ const runSpeedTest = async () => {
         <!-- 系统代理（继承 OS） -->
         <a-menu-item
           :key="SystemProfile.SYSTEM.profileID"
-          @click.prevent="() => { activeSetting = ''; setProxyByProfile(SystemProfile.SYSTEM) }"          
+          @click.prevent="
+            () => {
+              activeSetting = '';
+              setProxyByProfile(SystemProfile.SYSTEM);
+            }
+          "
         >
           <template #icon>
             <span class="menu-icon-holder">
@@ -337,42 +360,46 @@ const runSpeedTest = async () => {
               <span v-else class="sys-dot sys-off" />
             </span>
           </template>
-           系统代理
+          系统代理
         </a-menu-item>
 
+        <ThemeSwitcher size="large" />
+      </a-menu>
 
-	    <ThemeSwitcher size="large" />
-	     </a-menu>
+      <!-- 当前出口信息：放到“直连上网 / 系统代理”下面 -->
+      <div v-if="currentExitInfo" class="exit-info top-exit-info">
+        当前出口：
+        <span class="exit-ip">{{ currentExitInfo.ip }}</span>
+        <span class="exit-city">
+          {{ currentExitInfo.city || currentExitInfo.country }}
+        </span>
+        <span class="exit-flag">{{ currentExitInfo.flag }}</span>
+      </div>
+      <!-- 测速结果 -->
+      <div v-if="speedResult" class="exit-info top-exit-info">
+        测速结果：
+        <span
+          >download: {{ speedResult.download }} Mbs ping:
+          {{ speedResult.ping }} ms</span
+        >
+        <!-- 上传: {{ speedResult.upload }} Mbs -->
+      </div>
 
-        <!-- 当前出口信息：放到“直连上网 / 系统代理”下面 -->
-        <div v-if="currentExitInfo" class="exit-info top-exit-info">
-          当前出口：
-          <span class="exit-ip">{{ currentExitInfo.ip }}</span>          
-          <span class="exit-city">
-            {{ currentExitInfo.city || currentExitInfo.country }}
-          </span>
-         <span class="exit-flag">{{ currentExitInfo.flag }}</span>    
-        </div>
-        <!-- 测速结果 -->
-        <div v-if="speedResult" class="exit-info top-exit-info">        
-          测速结果：
-          <span>download: {{ speedResult.download }} Mbs  ping: {{ speedResult.ping }} ms</span>
-          <!-- 上传: {{ speedResult.upload }} Mbs -->
-        </div>
-
-
-
-        <!-- Mac 风格极细分割线 -->
-        <a-divider style="margin: 4px 0;" />
-        <a-menu class="profile-list-menu" :selected-keys="selectedKeys">
-
+      <!-- Mac 风格极细分割线 -->
+      <a-divider style="margin: 4px 0" />
+      <a-menu class="profile-list-menu" :selected-keys="selectedKeys">
         <!-- 用户 profile 列表 -->
         <a-menu-item
-          v-for="item in profiles"
+          v-for="item in sortedProfiles"
           :key="item.profileID"
-          @click.prevent="() => { activeSetting = ''; setProxyByProfile(item) }"
+          @click.prevent="
+            () => {
+              activeSetting = '';
+              setProxyByProfile(profiles[item.profileID]);
+            }
+          "
           class="custom-profiles"
-          :style="{ '--indicator-color': item.color || '#999' }"          
+          :style="{ '--indicator-color': item.color || '#999' }"
         >
           <template #icon>
             <span
@@ -397,7 +424,6 @@ const runSpeedTest = async () => {
         </a-menu-item>
       </a-menu>
     </a-layout-content>
-
   </a-layout>
 </template>
 
@@ -406,16 +432,16 @@ const runSpeedTest = async () => {
 .popup {
   display: flex;
   flex-direction: column;
-  width:  100%;     /* 控制主界面宽度 */
-  height: auto;    /* 控制主界面高度 */
+  width: 100%; /* 控制主界面宽度 */
+  height: auto; /* 控制主界面高度 */
   max-height: 100%;
   overflow: hidden;
 }
 
 /* 生效 Mac 风格：中间列表滚动，细行高 */
 .profiles {
-    overflow-y: auto;
-    height: auto;
+  overflow-y: auto;
+  height: auto;
 
   :deep(.arco-divider-horizontal) {
     margin: 4px 0;
@@ -427,7 +453,7 @@ const runSpeedTest = async () => {
 
     .arco-menu-item {
       position: relative;
-      padding: 6px 12px !important;   /* 行高更紧凑 */
+      padding: 6px 12px !important; /* 行高更紧凑 */
       min-height: 32px !important;
       font-size: 13px;
       line-height: 16px;
@@ -483,7 +509,7 @@ const runSpeedTest = async () => {
       .profile-city {
         color: var(--color-text-1) !important;
         opacity: 1;
-    }
+      }
 
       &.custom-profiles::before {
         background-color: rgb(var(--primary-6)) !important;

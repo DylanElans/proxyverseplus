@@ -1,5 +1,13 @@
 import { Host, PacScript, SimpleProxyServer } from "@/adapters";
 
+export async function saveProfilesInOrder(profiles: ProxyProfile[]) {
+  profiles.forEach((p, index) => {
+    p.order = index;
+  });
+
+  await saveManyProfiles(profiles);
+}
+
 export type ProxyAuthInfo = {
   username: string;
   password: string;
@@ -22,6 +30,7 @@ export type ProxyConfigMeta = {
   color: string;
   profileName: string;
   proxyType: "proxy" | "pac" | "system" | "direct" | "auto";
+  order?: number;   // 新增排序字段
 };
 
 // the basic proxy config, with authentication and pac script support
@@ -96,7 +105,13 @@ const onProfileUpdateListeners: ((p: ProfilesStorage) => void)[] = [];
 // list all user defined profiles. System profiles are not included
 export async function listProfiles(): Promise<ProfilesStorage> {
   const s = await Host.get<ProfilesStorage>(keyProfileStorage);
-  return s || {};
+  const data = s || {};
+
+  Object.keys(data).forEach((key) => {
+    data[key] = normalizeProfile(data[key]);
+  });
+
+  return data;
 }
 
 export function onProfileUpdate(callback: (p: ProfilesStorage) => void) {
@@ -116,14 +131,31 @@ async function overwriteProfiles(profiles: ProfilesStorage) {
  */
 export async function saveProfile(profile: ProxyProfile) {
   const data = await listProfiles();
-  data[profile.profileID] = profile;
+  data[profile.profileID] = normalizeProfile(profile);
   await overwriteProfiles(data);
+}
+
+function normalizeProfile(profile: any) {
+  if (profile?.proxyRules) {
+    if (Array.isArray(profile.proxyRules.bypassList)) {
+      // 正常
+    } else if (typeof profile.proxyRules.bypassList === "string") {
+      profile.proxyRules.bypassList = profile.proxyRules.bypassList
+        .split("\n")
+        .map((x: string) => x.trim())
+        .filter(Boolean);
+    } else {
+      profile.proxyRules.bypassList = [];
+    }
+  }
+
+  return profile;
 }
 
 export async function saveManyProfiles(profiles: ProxyProfile[]) {
   let data = await listProfiles();
   profiles.forEach((p) => {
-    data[p.profileID] = p;
+    data[p.profileID] = normalizeProfile(p);
   });
   await overwriteProfiles(data);
 }

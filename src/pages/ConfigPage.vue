@@ -1,24 +1,86 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import "@arco-design/web-vue/es/resize-box/style/index.css";
 import {
   IconSettings,
   IconRelation,
   IconPlus,
   IconEdit,
+  IconSwap,
+  IconDragDot,
 } from "@arco-design/web-vue/es/icon";
 import { onMounted, ref } from "vue";
+
 import {
   ProfilesStorage,
   listProfiles,
   onProfileUpdate,
+  saveManyProfiles,
+  deleteProfile,
+  saveProfile,
 } from "../services/profile";
+
 import ThemeSwitcher from "../components/controls/ThemeSwitcher.vue";
+
+//script 增加
+import draggable from "vuedraggable";
+
+const dragList = ref([]);
+const showSortModal = ref(false);
+
+//打开排序时初始化
+const openSortModal = () => {
+  dragList.value = Object.values(profiles.value);
+  showSortModal.value = true;
+};
+
+const sortedProfiles = computed(() => {
+  return Object.values(profiles.value).sort((a: any, b: any) => {
+    return (a.order ?? 9999) - (b.order ?? 9999);
+  });
+});
+
+//保存排序
+// 保存排序
+const confirmSort = async () => {
+  dragList.value.forEach((p: any, index) => {
+    p.order = index;
+
+    if (p.proxyRules) {
+      if (Array.isArray(p.proxyRules.bypassList)) {
+        // 正常，不处理
+      } else if (typeof p.proxyRules.bypassList === "string") {
+        p.proxyRules.bypassList = p.proxyRules.bypassList
+          .split("\n")
+          .map((x: string) => x.trim())
+          .filter(Boolean);
+      } else {
+        p.proxyRules.bypassList = [];
+      }
+    }
+  });
+
+  await saveManyProfiles(dragList.value as any);
+
+  profiles.value = await listProfiles();
+
+  showSortModal.value = false;
+};
+
+//重置
+const resetSort = () => {
+  dragList.value = Object.values(profiles.value);
+};
 
 const profiles = ref<ProfilesStorage>({});
 
+// 强制主界面刷新 profiles
 onMounted(async () => {
   profiles.value = await listProfiles();
-  onProfileUpdate((p) => (profiles.value = p));
+});
+
+onProfileUpdate((p) => {
+  profiles.value = p;
 });
 </script>
 
@@ -33,9 +95,19 @@ onMounted(async () => {
         <section class="settings">
           <a-button-group type="text" size="large">
             <a-tooltip :content="$t('nav_preference')" position="bottom">
-              <a-button @click="$router.push({ name: 'preference' })">
+              <a-button
+                class="btn-preference"
+                @click="$router.push({ name: 'preference' })"
+              >
                 <template #icon>
                   <icon-settings size="large" />
+                </template>
+              </a-button>
+            </a-tooltip>
+            <a-tooltip content="排序代理" position="bottom">
+              <a-button class="btn-sort" @click.stop="openSortModal">
+                <template #icon>
+                  <icon-swap />
                 </template>
               </a-button>
             </a-tooltip>
@@ -64,26 +136,25 @@ onMounted(async () => {
             </RouterLink>
 
             <RouterLink
-              v-for="(p, idx) in profiles"
-              :to="{ name: 'profile.custom', params: { id: p.profileID } }"
-              :key="idx"
+              v-for="item in sortedProfiles"
+              :key="item.profileID"
+              :to="{ name: 'profile.custom', params: { id: item.profileID } }"
             >
               <a-menu-item
                 :key="
                   $router.resolve({
                     name: 'profile.custom',
-                    params: { id: p.profileID },
+                    params: { id: item.profileID },
                   }).path
                 "
                 class="custom-profiles"
-                :style="{ '--indicator-color': p.color }"
+                :style="{ '--indicator-color': item.color }"
               >
                 <template #icon><span class="color-indicator"></span></template>
-                {{ p.profileName }}
+                {{ item.profileName }}
                 <icon-edit class="icon-edit" />
               </a-menu-item>
             </RouterLink>
-
           </a-menu>
         </section>
       </div>
@@ -102,6 +173,24 @@ onMounted(async () => {
       </a-layout-footer>
     </a-layout>
   </a-layout>
+
+  <!-- 拖拽 UI -->
+  <a-modal v-model:visible="showSortModal" title="拖拽排序代理" width="500px">
+    <draggable v-model="dragList" item-key="profileID" animation="200">
+      <template #item="{ element }">
+        <div class="drag-item">
+          <IconDragDot style="margin-right: 8px" />
+          {{ element.profileName }}
+        </div>
+      </template>
+    </draggable>
+
+    <template #footer>
+      <a-button type="primary" @click="confirmSort">确定</a-button>
+      <a-button @click="resetSort">重置</a-button>
+      <a-button @click="showSortModal = false">关闭</a-button>
+    </template>
+  </a-modal>
 </template>
 
 <style lang="scss">
@@ -175,5 +264,27 @@ onMounted(async () => {
   &:hover .icon-edit {
     display: inline-block;
   }
+}
+
+.drag-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: var(--color-bg-2);
+  border-radius: 6px;
+  cursor: move;
+}
+
+.drag-item:hover {
+  background: rgba(var(--primary-6), 0.15);
+}
+
+.btn-preference {
+  margin-right: 16px; // 与后面的按钮间距
+}
+
+.btn-sort {
+  margin-right: 16px; // 如果后面还有按钮
 }
 </style>
