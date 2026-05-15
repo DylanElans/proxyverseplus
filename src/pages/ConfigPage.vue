@@ -29,26 +29,26 @@ const dragList = ref([]);
 const showSortModal = ref(false);
 
 //打开排序时初始化
+const sortCache = ref<any[]>([]);
 const openSortModal = () => {
-  dragList.value = Object.values(profiles.value);
+  const source =
+    sortCache.value.length > 0 ? sortCache.value : sortedProfiles.value;
+  dragList.value = source.map((p: any) => ({ ...p }));
   showSortModal.value = true;
 };
 
 const sortedProfiles = computed(() => {
-  return Object.values(profiles.value).sort((a: any, b: any) => {
-    return (a.order ?? 9999) - (b.order ?? 9999);
+  return [...Object.values(profiles.value)].sort((a: any, b: any) => {
+    return Number(a.order ?? 9999) - Number(b.order ?? 9999);
   });
 });
 
-//保存排序
-// 保存排序
 const confirmSort = async () => {
   dragList.value.forEach((p: any, index) => {
     p.order = index;
 
     if (p.proxyRules) {
       if (Array.isArray(p.proxyRules.bypassList)) {
-        // 正常，不处理
       } else if (typeof p.proxyRules.bypassList === "string") {
         p.proxyRules.bypassList = p.proxyRules.bypassList
           .split("\n")
@@ -60,16 +60,15 @@ const confirmSort = async () => {
     }
   });
 
+  sortCache.value = dragList.value.map((p: any) => ({ ...p }));
   await saveManyProfiles(dragList.value as any);
-
   profiles.value = await listProfiles();
-
   showSortModal.value = false;
 };
 
-//重置
 const resetSort = () => {
-  dragList.value = Object.values(profiles.value);
+  sortCache.value = [];
+  dragList.value = sortedProfiles.value.map((p: any) => ({ ...p }));
 };
 
 const profiles = ref<ProfilesStorage>({});
@@ -176,6 +175,9 @@ onProfileUpdate((p) => {
 
   <!-- 拖拽 UI -->
   <a-modal v-model:visible="showSortModal" title="拖拽排序代理" width="500px">
+    <div style="margin-bottom: 10px; color: red">
+      {{ debugText }}
+    </div>
     <draggable v-model="dragList" item-key="profileID" animation="200">
       <template #item="{ element }">
         <div class="drag-item">

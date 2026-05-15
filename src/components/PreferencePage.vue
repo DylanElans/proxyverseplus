@@ -22,92 +22,98 @@ onChange(async (file) => {
     return;
   }
 
-const profiles = json2config(await file[0].text());
+  const profiles = json2config(await file[0].text());
 
-const COLORS = [
-  "#409EFF", // 蓝
-  "#67C23A", // 绿
-  "#E6A23C", // 橙
-  "#F56C6C", // 红
-  "#9B59B6", // 紫
-  "#1ABC9C", // 青绿
-  "#E74C3C", // 深红
-  "#2ECC71", // 鲜绿
-  "#3498DB", // 深蓝
-  "#F39C12", // 深橙
-  "#8E44AD", // 深紫
-  "#16A085", // 深青
-  "#C0392B", // 酒红
-  "#27AE60", // 森林绿
-  "#2980B9", // 海蓝
-  "#D35400", // 焦橙
-  "#7F8C8D", // 灰（备用）
-];
-
-const usedColors = new Set<string>();
-
-const colorDistance = (a: string, b: string) => {
-  const ar = parseInt(a.slice(1, 3), 16);
-  const ag = parseInt(a.slice(3, 5), 16);
-  const ab = parseInt(a.slice(5, 7), 16);
-
-  const br = parseInt(b.slice(1, 3), 16);
-  const bg = parseInt(b.slice(3, 5), 16);
-  const bb = parseInt(b.slice(5, 7), 16);
-
-  return Math.sqrt(
-    Math.pow(ar - br, 2) +
-    Math.pow(ag - bg, 2) +
-    Math.pow(ab - bb, 2)
-  );
-};
-
-const getNextColor = (
-  used: Set<string>,
-  index: number,
-  prevColor?: string
-) => {
-  const minDistance = 100;
-
-  for (let i = 0; i < COLORS.length; i++) {
-    const color = COLORS[(index + i) % COLORS.length];
-
-    if (used.has(color)) continue;
-
-    if (!prevColor || colorDistance(color, prevColor) >= minDistance) {
-      return color;
+  profiles.forEach((p: any, index: number) => {
+    if (p.order === undefined || p.order === null) {
+      p.order = index;
     }
-  }
+  });
 
-  for (let i = 0; i < COLORS.length; i++) {
-    const color = COLORS[(index + i) % COLORS.length];
-    if (!used.has(color)) return color;
-  }
+  // 按 order 排序
+  profiles.sort((a: any, b: any) => (a.order ?? 9999) - (b.order ?? 9999));
 
-  return COLORS[index % COLORS.length];
-};
+  const COLORS = [
+    "#409EFF", // 蓝
+    "#67C23A", // 绿
+    "#E6A23C", // 橙
+    "#F56C6C", // 红
+    "#9B59B6", // 紫
+    "#1ABC9C", // 青绿
+    "#E74C3C", // 深红
+    "#2ECC71", // 鲜绿
+    "#3498DB", // 深蓝
+    "#F39C12", // 深橙
+    "#8E44AD", // 深紫
+    "#16A085", // 深青
+    "#C0392B", // 酒红
+    "#27AE60", // 森林绿
+    "#2980B9", // 海蓝
+    "#D35400", // 焦橙
+    "#7F8C8D", // 灰（备用）
+  ];
 
+  const usedColors = new Set<string>();
 
-let prevColor = "";
+  const colorDistance = (a: string, b: string) => {
+    const ar = parseInt(a.slice(1, 3), 16);
+    const ag = parseInt(a.slice(3, 5), 16);
+    const ab = parseInt(a.slice(5, 7), 16);
 
-profiles.forEach((p, index) => {
-  if (
-    !p.color ||
-    usedColors.has(p.color) ||
-    (prevColor && colorDistance(p.color, prevColor) < 90)
-  ) {
-    p.color = getNextColor(usedColors, index, prevColor);
-  }
+    const br = parseInt(b.slice(1, 3), 16);
+    const bg = parseInt(b.slice(3, 5), 16);
+    const bb = parseInt(b.slice(5, 7), 16);
 
-  usedColors.add(p.color);
-  prevColor = p.color;
-});
+    return Math.sqrt(
+      Math.pow(ar - br, 2) + Math.pow(ag - bg, 2) + Math.pow(ab - bb, 2),
+    );
+  };
+
+  const getNextColor = (
+    used: Set<string>,
+    index: number,
+    prevColor?: string,
+  ) => {
+    const minDistance = 100;
+
+    for (let i = 0; i < COLORS.length; i++) {
+      const color = COLORS[(index + i) % COLORS.length];
+
+      if (used.has(color)) continue;
+
+      if (!prevColor || colorDistance(color, prevColor) >= minDistance) {
+        return color;
+      }
+    }
+
+    for (let i = 0; i < COLORS.length; i++) {
+      const color = COLORS[(index + i) % COLORS.length];
+      if (!used.has(color)) return color;
+    }
+
+    return COLORS[index % COLORS.length];
+  };
+
+  let prevColor = "";
+
+  profiles.forEach((p, index) => {
+    if (
+      !p.color ||
+      usedColors.has(p.color) ||
+      (prevColor && colorDistance(p.color, prevColor) < 90)
+    ) {
+      p.color = getNextColor(usedColors, index, prevColor);
+    }
+
+    usedColors.add(p.color);
+    prevColor = p.color;
+  });
 
   await saveManyProfiles(profiles);
   Notification.success({
     content: Host.getMessage(
       "preferences_feedback_n_profiles_being_imported",
-      profiles.length.toString()
+      profiles.length.toString(),
     ),
   });
   reset();
@@ -118,14 +124,21 @@ const exportProfiles = async () => {
   if (!profiles) {
     Notification.warning({
       content: Host.getMessage(
-        "preferences_feedback_no_profile_to_be_exported"
+        "preferences_feedback_no_profile_to_be_exported",
       ),
     });
     return;
   }
 
+  const sortedProfiles = Object.fromEntries(
+    Object.values(profiles)
+      .sort(
+        (a: any, b: any) => Number(a.order ?? 9999) - Number(b.order ?? 9999),
+      )
+      .map((p: any) => [p.profileID, p]),
+  );
   try {
-    const jsonStr = config2json(profiles);
+    const jsonStr = config2json(sortedProfiles as any);
 
     // download
     const obj = new Blob([jsonStr], { type: "application/json" });
